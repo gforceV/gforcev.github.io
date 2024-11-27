@@ -14,11 +14,15 @@
             display: flex;
             justify-content: center;
             gap: 20px;
+            flex-wrap: wrap;
         }
         .link-container a {
             text-decoration: none;
             color: black;
             font-size: 1.2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .link-container img {
             width: 50px;
@@ -31,15 +35,15 @@
     <div class="link-container">
         <a href="https://electrek.co" target="_blank">
             <img src="electrek.jpg" alt="Electrek">
-            Electrek
+            <span>Electrek</span>
         </a>
         <a href="https://news.ycombinator.com" target="_blank">
-            <img src="https://example.com/hacker-news-logo.png" alt="Hacker News">
-            Hacker News
+            <img src="hackernews.png" alt="Hacker News">
+            <span>Hacker News</span>
         </a>
         <a href="https://news.google.com" target="_blank">
-            <img src="https://example.com/google-news-logo.png" alt="Google News">
-            Google News
+            <img src="googlenews.png" alt="Google News">
+            <span>Google News</span>
         </a>
     </div>
 </body>
