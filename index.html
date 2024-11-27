@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Home Page</title>
-    
-    <!-- Add your internal CSS here -->
     <style>
         /* Default styles (Light Mode) */
         body {
@@ -82,20 +80,11 @@
             color: #007bff;
         }
 
-        /* Container for the image (for Google News logo) */
-        .image-container {
-            display: inline-block;
-            background-color: inherit; /* Inherit background color from the parent element */
-            padding: 5px; /* Adjust padding if necessary */
-            border-radius: 5px; /* Optional: to round the corners */
+        .links-section img {
+            width: 20px;
+            vertical-align: middle;
+            margin-right: 8px;
         }
-
-        .image-container img {
-            display: block; /* Removes bottom space that images often have */
-            width: 20px; /* Adjust as needed */
-            height: auto;
-        }
-
     </style>
 </head>
 <body>
@@ -129,9 +118,7 @@
             <span>Hacker News</span>
         </a>
         <a href="https://news.google.com" target="_blank">
-            <div class="image-container">
-                <img src="googlenews.png" alt="Google News">
-            </div>
+            <img src="googlenews.png" alt="Google News">
             <span>Google News</span>
         </a>
     </div>
