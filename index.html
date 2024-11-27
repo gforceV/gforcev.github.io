@@ -3,36 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Home Page</title>
+    <title>Personal Home Page</title>
     <style>
+        /* Default styles (Light Mode) */
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
             text-align: center;
-            margin: 50px;
         }
-        .link-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
+
+        .container {
+            padding: 20px;
         }
-        .link-container a {
+
+        .mode-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        h2 {
+            color: #007bff;
+        }
+
+        .links-section {
+            margin-bottom: 30px;
+        }
+
+        .links-section a {
+            display: block;
+            font-size: 16px;
+            color: #333;
+            margin: 5px 0;
             text-decoration: none;
-            color: black;
-            font-size: 1.2em;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            transition: color 0.3s;
         }
-        .link-container img {
-            width: 50px;
-            height: 50px;
+
+        .links-section a:hover {
+            color: #007bff;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode header {
+            background-color: #333;
+        }
+
+        body.dark-mode .mode-toggle {
+            background-color: #333;
+        }
+
+        body.dark-mode .links-section a {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .links-section a:hover {
+            color: #007bff;
+        }
+
+        .links-section img {
+            width: 20px;
+            vertical-align: middle;
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to My Home Page</h1>
-    <div class="link-container">
+
+<header>
+    <h1>Welcome to My Personal Home Page</h1>
+    <button class="mode-toggle" onclick="toggleMode()">Toggle Dark/Light Mode</button>
+</header>
+
+<div class="container">
+    <div class="links-section">
+        <h2>Homenet Links</h2>
+        <a href="https://openspeedtest.aperturelabs.cc" target="_blank">OpenSpeedTest</a>
+        <a href="https://photoprism.aperturelabs.cc" target="_blank">PhotoPrism</a>
+        <a href="https://papermerge.aperturelabs.cc" target="_blank">PaperMerge</a>
+        <a href="https://truenas.aperturelabs.cc" target="_blank">TrueNas</a>
+        <a href="https://centos.aperturelabs.cc" target="_blank">CentOS</a>
+        <a href="https://sync.aperturelabs.cc" target="_blank">Sync</a>
+        <a href="https://syncremote.aperturelabs.cc" target="_blank">Sync Remote</a>
+        <a href="https://homeassistant.aperturelabs.cc" target="_blank">HomeAssistant</a>
+    </div>
+
+    <div class="links-section">
+        <h2>Cybernet Links</h2>
         <a href="https://electrek.co" target="_blank">
             <img src="electrek.jpg" alt="Electrek">
             <span>Electrek</span>
@@ -46,5 +122,14 @@
             <span>Google News</span>
         </a>
     </div>
+</div>
+
+<script>
+    // Toggle between light and dark mode
+    function toggleMode() {
+        document.body.classList.toggle('dark-mode');
+    }
+</script>
+
 </body>
 </html>
