@@ -16,15 +16,10 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        header {
-            background-color: #007bff;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-
         .container {
             padding: 20px;
+            max-width: 960px; /* Constrain content width */
+            margin: 20px auto; /* Center the container, added top margin */
         }
 
         .mode-toggle {
@@ -36,10 +31,13 @@
             color: white;
             border: none;
             cursor: pointer;
+            border-radius: 5px;
         }
 
         h2 {
             color: #007bff;
+            margin-top: 20px;
+            margin-bottom: 10px;
         }
 
         .links-section {
@@ -51,22 +49,25 @@
             font-size: 16px;
             color: #333;
             margin: 5px 0;
+            padding: 5px 0;
             text-decoration: none;
             transition: color 0.3s;
         }
 
         .links-section a:hover {
-            color: #007bff;
+            color: #0056b3;
+        }
+
+        .links-section img {
+            width: 20px;
+            vertical-align: middle;
+            margin-right: 8px;
         }
 
         /* Dark Mode */
         body.dark-mode {
             background-color: #121212;
             color: #e0e0e0;
-        }
-
-        body.dark-mode header {
-            background-color: #333;
         }
 
         body.dark-mode .mode-toggle {
@@ -81,21 +82,57 @@
             color: #007bff;
         }
 
-        .links-section img {
-            width: 20px;
-            vertical-align: middle;
-            margin-right: 8px;
+        body.dark-mode h2 {
+            color: #7ab8ff; /* A lighter blue for dark mode headings */
+        }
+
+        /* Info Section Styling */
+        .info-section {
+            background-color: #ffffff; /* Light background for sections */
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center; /* Center content within this section */
+        }
+
+        body.dark-mode .info-section {
+            background-color: #2c2c2c; /* Darker background for sections in dark mode */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .info-section div { /* Style for individual info lines like time/IP */
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        body.dark-mode .info-section div {
+            color: #e0e0e0;
+        }
+
+        .current-time, .ip-display { /* Specific styles for time and IP text */
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        body.dark-mode .current-time, body.dark-mode .ip-display {
+            color: #7ab8ff;
         }
     </style>
 </head>
-<body>
+<body class="dark-mode"> <!-- Default to dark mode -->
 
-<header>
-    <h1>Home Page</h1>
-    <button class="mode-toggle" onclick="toggleMode()">Toggle Dark/Light Mode</button>
-</header>
+<button class="mode-toggle" onclick="toggleMode()">Toggle Dark/Light Mode</button>
 
 <div class="container">
+    <!-- Combined Time and IP Address Section -->
+    <div class="info-section">
+        <h2>System Information</h2>
+        <div>Current Time (Central Time): <span id="central-time" class="current-time">Calculating...</span></div>
+        <div>Your Public IP Address: <span id="ip-address" class="ip-display">Fetching IP address...</span></div>
+    </div>
+
     <div class="links-section">
         <h2>Homenet Links</h2>
         <a href="https://openspeedtest.aperturelabs.cc" target="_blank">OpenSpeedTest</a>
@@ -124,18 +161,32 @@
             <span>Google News</span>
         </a>
     </div>
-
-    <div class="ip-section">
-        <h2>Your Public IP Address</h2>
-        <div id="ip-address">Fetching IP address...</div>
-    </div>
 </div>
 
 <script>
     // Toggle between light and dark mode
     function toggleMode() {
         document.body.classList.toggle('dark-mode');
+        // Persist the mode
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
     }
+
+    // Apply saved theme on load, overriding default if a choice was made
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.remove('dark-mode');
+        } else if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+        } else {
+            // No saved theme, default to dark mode
+            document.body.classList.add('dark-mode');
+        }
+    })();
 
     // Fetch and display the public IP address
     async function fetchIPAddress() {
@@ -145,11 +196,31 @@
             document.getElementById('ip-address').textContent = data.ip;
         } catch (error) {
             document.getElementById('ip-address').textContent = 'Unable to fetch IP address';
+            console.error('Error fetching IP address:', error);
         }
     }
 
-    // Call the function to fetch the IP address when the page loads
-    window.onload = fetchIPAddress;
+    // Update Central Time to display in 12-hour format (HH:MM:SS AM/PM)
+    function updateCentralTime() {
+        const now = new Date();
+        const options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true, // 12-hour format
+            timeZone: 'America/Chicago' // Central Time
+        };
+        const timeString = now.toLocaleTimeString('en-US', options);
+        document.getElementById('central-time').textContent = timeString;
+    }
+
+    // Call functions when the page loads
+    window.onload = function() {
+        fetchIPAddress();
+        updateCentralTime(); // Initial call
+        setInterval(updateCentralTime, 1000); // Update every second
+        // Removed displayPageLoadTime();
+    };
 </script>
 
 </body>
