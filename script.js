@@ -190,11 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         // Optionally, refresh the status periodically (e.g., every 5 minutes)
-        // setInterval(() => {
-        //     fetchTunnelStatus()
-        //         .then(renderTunnelStatus)
-        //         .catch(error => console.error('Periodic fetch error:', error));
-        // }, 300000); // 300000 ms = 5 minutes
+        setInterval(() => {
+            fetchTunnelStatus()
+                .then(renderTunnelStatus)
+                .catch(error => console.error('Periodic fetch error:', error));
+        }, 300000); // 300000 ms = 5 minutes
     }
 
 
