@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>Aperture Labs - Home Page</title>
     <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Default styles (Light Mode) */
+        /* Custom styles for Inter font and general body styling */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', Arial, sans-serif; /* Added Inter font */
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
@@ -32,6 +34,7 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            z-index: 10; /* Ensure it's above other content */
         }
 
         h2 {
@@ -119,109 +122,154 @@
         body.dark-mode .current-time, body.dark-mode .ip-display {
             color: #7ab8ff;
         }
+
+        /* Styles for Cloudflare Tunnel Status Section (using Tailwind classes) */
+        #tunnel-status-section {
+            padding: 20px;
+            background-color: #e0f2fe; /* Light blue background for the section */
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            border: 1px solid #a7d9f7;
+        }
+
+        body.dark-mode #tunnel-status-section {
+            background-color: #1a202c; /* Darker blue background in dark mode */
+            border-color: #2d3748;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        #tunnel-status-section h2 {
+            color: #1e40af; /* Darker blue for heading */
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode #tunnel-status-section h2 {
+            color: #90cdf4; /* Lighter blue for heading in dark mode */
+        }
+
+        .tunnel-item {
+            background-color: #ffffff; /* White background for individual tunnel cards */
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .tunnel-item {
+            background-color: #2d3748; /* Dark background for tunnel cards in dark mode */
+            border-color: #4a5568;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .tunnel-item h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748; /* Dark gray for tunnel name */
+            margin-bottom: 8px;
+        }
+
+        body.dark-mode .tunnel-item h3 {
+            color: #e2e8f0; /* Light gray for tunnel name in dark mode */
+        }
+
+        .tunnel-item p {
+            font-size: 0.95rem;
+            color: #4a5568; /* Medium gray for text */
+            margin-bottom: 5px;
+        }
+
+        body.dark-mode .tunnel-item p {
+            color: #cbd5e0; /* Lighter gray for text in dark mode */
+        }
+
+        .tunnel-item ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 10px;
+        }
+
+        .tunnel-item ul li {
+            font-size: 0.9rem;
+            color: #64748b; /* Slate gray for list items */
+            margin-bottom: 3px;
+        }
+
+        body.dark-mode .tunnel-item ul li {
+            color: #a0aec0; /* Lighter slate gray in dark mode */
+        }
+
+        /* Spinner for loading state */
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="dark-mode"> <!-- Default to dark mode -->
+<body>
+    <button class="mode-toggle" onclick="toggleMode()">Toggle Dark/Light Mode</button>
 
-<button class="mode-toggle" onclick="toggleMode()">Toggle Dark/Light Mode</button>
+    <div class="container">
+        <!-- Combined Time and IP Address Section -->
+        <div class="info-section">
+            <h2>System Information</h2>
+            <div>Current Time (Central Time): <span id="central-time" class="current-time">Calculating...</span></div>
+            <div>Your Public IP Address: <span id="ip-address" class="ip-display">Fetching IP address...</span></div>
+        </div>
 
-<div class="container">
-    <!-- Combined Time and IP Address Section -->
-    <div class="info-section">
-        <h2>System Information</h2>
-        <div>Current Time (Central Time): <span id="central-time" class="current-time">Calculating...</span></div>
-        <div>Your Public IP Address: <span id="ip-address" class="ip-display">Fetching IP address...</span></div>
+        <!-- Cloudflare Tunnel Status Section -->
+        <section id="tunnel-status-section" class="mt-10">
+            <h2 class="text-3xl font-bold mb-6 text-center">Cloudflare Tunnel Status</h2>
+            <div id="tunnel-status" class="text-gray-700 text-center text-lg">
+                <p>Loading tunnel status...</p>
+                <div class="flex justify-center items-center mt-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 mt-6 text-center">
+                Status is fetched securely via a Cloudflare Worker.
+            </p>
+        </section>
+
+        <div class="links-section">
+            <h2>Homenet Links</h2>
+            <a href="https://openspeedtest.aperturelabs.cc" target="_blank">OpenSpeedTest</a>
+            <a href="https://proxmox.aperturelabs.cc" target="_blank">Proxmox</a>
+            <a href="https://papermerge.aperturelabs.cc" target="_blank">PaperMerge</a>
+            <a href="https://truenas.aperturelabs.cc" target="_blank">TrueNas</a>
+            <a href="https://centos.aperturelabs.cc" target="_blank">Rocky</a>
+            <a href="https://sync.aperturelabs.cc" target="_blank">Sync</a>
+            <a href="https://syncremote.aperturelabs.cc" target="_blank">Sync Remote</a>
+            <a href="https://homeassistant.aperturelabs.cc" target="_blank">HomeAssistant</a>
+            <a href="https://guac.aperturelabs.cc/guacamole/#" target="_blank">Guac</a>
+        </div>
+
+        <div class="links-section">
+            <h2>Cybernet Links</h2>
+            <a href="https://electrek.co" target="_blank">
+                <img src="electrek.jpg" alt="Electrek">
+                <span>Electrek</span>
+            </a>
+            <a href="https://news.ycombinator.com" target="_blank">
+                <img src="hackernews.png" alt="Hacker News">
+                <span>Hacker News</span>
+            </a>
+            <a href="https://news.google.com" target="_blank">
+                <img src="googlenews.png" alt="Google News">
+                <span>Google News</span>
+            </a>
+        </div>
     </div>
 
-    <div class="links-section">
-        <h2>Homenet Links</h2>
-        <a href="https://openspeedtest.aperturelabs.cc" target="_blank">OpenSpeedTest</a>
-        <a href="https://proxmox.aperturelabs.cc" target="_blank">Proxmox</a>
-        <a href="https://papermerge.aperturelabs.cc" target="_blank">PaperMerge</a>
-        <a href="https://truenas.aperturelabs.cc" target="_blank">TrueNas</a>
-        <a href="https://centos.aperturelabs.cc" target="_blank">Rocky</a>
-        <a href="https://sync.aperturelabs.cc" target="_blank">Sync</a>
-        <a href="https://syncremote.aperturelabs.cc" target="_blank">Sync Remote</a>
-        <a href="https://homeassistant.aperturelabs.cc" target="_blank">HomeAssistant</a>
-        <a href="https://guac.aperturelabs.cc/guacamole/#" target="_blank">Guac</a>
-    </div>
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+        <p>&copy; 2025 Aperture Labs. All rights reserved.</p>
+    </footer>
 
-    <div class="links-section">
-        <h2>Cybernet Links</h2>
-        <a href="https://electrek.co" target="_blank">
-            <img src="electrek.jpg" alt="Electrek">
-            <span>Electrek</span>
-        </a>
-        <a href="https://news.ycombinator.com" target="_blank">
-            <img src="hackernews.png" alt="Hacker News">
-            <span>Hacker News</span>
-        </a>
-        <a href="https://news.google.com" target="_blank">
-            <img src="googlenews.png" alt="Google News">
-            <span>Google News</span>
-        </a>
-    </div>
-</div>
-
-<script>
-    // Toggle between light and dark mode
-    function toggleMode() {
-        document.body.classList.toggle('dark-mode');
-        // Persist the mode
-        if (document.body.classList.contains('dark-mode')) {
-            localStorage.setItem('theme', 'dark');
-        } else {
-            localStorage.setItem('theme', 'light');
-        }
-    }
-
-    // Apply saved theme on load, overriding default if a choice was made
-    (function() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            document.body.classList.remove('dark-mode');
-        } else if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-        } else {
-            // No saved theme, default to dark mode
-            document.body.classList.add('dark-mode');
-        }
-    })();
-
-    // Fetch and display the public IP address
-    async function fetchIPAddress() {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            document.getElementById('ip-address').textContent = data.ip;
-        } catch (error) {
-            document.getElementById('ip-address').textContent = 'Unable to fetch IP address';
-            console.error('Error fetching IP address:', error);
-        }
-    }
-
-    // Update Central Time to display in 12-hour format (HH:MM:SS AM/PM)
-    function updateCentralTime() {
-        const now = new Date();
-        const options = {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true, // 12-hour format
-            timeZone: 'America/Chicago' // Central Time
-        };
-        const timeString = now.toLocaleTimeString('en-US', options);
-        document.getElementById('central-time').textContent = timeString;
-    }
-
-    // Call functions when the page loads
-    window.onload = function() {
-        fetchIPAddress();
-        updateCentralTime(); // Initial call
-        setInterval(updateCentralTime, 1000); // Update every second
-        // Removed displayPageLoadTime();
-    };
-</script>
-
+    <!-- Link to your JavaScript file -->
+    <script src="script.js"></script>
 </body>
 </html>
