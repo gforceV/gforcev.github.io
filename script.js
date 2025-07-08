@@ -68,10 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // IMPORTANT: Replace this with the actual URL of your deployed Cloudflare Worker.
     // This Worker will act as a secure proxy to the Cloudflare API.
     // Example: const workerUrl = 'https://your-tunnel-status-worker.your-username.workers.dev';
-    const workerUrl = 'https://tunnel-status.isaac-g-swenson.workers.dev'; // <<< REPLACE THIS LINE WITH YOUR WORKER URL
+    const workerUrl = 'tunnel-status.isaac-g-swenson.workers.dev'; // <<< REPLACE THIS LINE WITH YOUR WORKER URL
 
     // Display a message if the Worker URL is not configured
-    if (tunnelStatusDiv && (workerUrl === 'https://tunnel-status.isaac-g-swenson.workers.dev' || !workerUrl)) {
+    if (tunnelStatusDiv && (workerUrl === 'tunnel-status.isaac-g-swenson.workers.dev' || !workerUrl)) {
         tunnelStatusDiv.innerHTML = `
             <p class="text-red-600 font-semibold">
                 Error: Cloudflare Worker URL is not configured.
