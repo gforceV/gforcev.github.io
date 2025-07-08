@@ -71,16 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const workerUrl = 'https://tunnel-status.isaac-g-swenson.workers.dev'; // <<< REPLACE THIS LINE WITH YOUR WORKER URL
 
     // Display a message if the Worker URL is not configured
-    if (tunnelStatusDiv && (workerUrl === 'https://tunnel-status.isaac-g-swenson.workers.dev' || !workerUrl)) {
-        tunnelStatusDiv.innerHTML = `
-            <p class="text-red-600 font-semibold">
-                Error: Cloudflare Worker URL is not configured.
-                Please update 'script.js' with your deployed Worker's URL.
-            </p>
-        `;
-        console.error("Cloudflare Worker URL is not configured in script.js.");
-        // Do not proceed with tunnel status fetch if URL is missing
-    } else if (tunnelStatusDiv) { // Only proceed if tunnelStatusDiv exists and workerUrl is set
+    if (tunnelStatusDiv) { // Only proceed if tunnelStatusDiv exists and workerUrl is set
         /**
          * Fetches the Cloudflare tunnel status from the deployed Worker.
          * @returns {Promise<Array>} A promise that resolves to an array of tunnel objects.
