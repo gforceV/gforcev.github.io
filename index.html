@@ -47,8 +47,10 @@
             margin-bottom: 30px;
         }
 
+        /* --- MODIFIED CSS FOR LINKS AND LOGOS --- */
         .links-section a {
-            display: block;
+            display: flex; /* Changed from 'block' to 'flex' */
+            align-items: center; /* Vertically align items in the center */
             font-size: 16px;
             color: #333;
             margin: 5px 0;
@@ -63,9 +65,12 @@
 
         .links-section img {
             width: 20px;
-            vertical-align: middle;
+            height: 20px; /* Added height to ensure consistent sizing */
+            object-fit: contain; /* Ensures image scales properly within its bounds */
+            vertical-align: middle; /* This might not be strictly needed with flex, but good for fallback */
             margin-right: 8px;
         }
+        /* --- END MODIFIED CSS --- */
 
         /* Dark Mode */
         body.dark-mode {
