@@ -1,30 +1,28 @@
-// script.js
 document.addEventListener('DOMContentLoaded', () => {
     // --- Theme Toggle Functionality ---
     function toggleMode() {
-        document.body.classList.toggle('dark-mode');
-        // Persist the mode
-        if (document.body.classList.contains('dark-mode')) {
+        const body = document.body;
+        body.classList.toggle('dark-mode');
+        body.classList.toggle('light-mode');
+        if (body.classList.contains('dark-mode')) {
             localStorage.setItem('theme', 'dark');
         } else {
             localStorage.setItem('theme', 'light');
         }
     }
 
-    // Apply saved theme on load, overriding default if a choice was made
+    // Apply saved theme on load, default to dark mode if none saved
     (function applySavedTheme() {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
             document.body.classList.remove('dark-mode');
-        } else if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
+            document.body.classList.add('light-mode');
         } else {
-            // No saved theme, default to dark mode
             document.body.classList.add('dark-mode');
         }
     })();
 
-    // Expose toggleMode to the global scope so it can be called from onclick attribute
+    // Expose toggleMode to the global scope
     window.toggleMode = toggleMode;
 
     // --- IP Address Fetching ---
@@ -34,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             const ipAddressElement = document.getElementById('ip-address');
             if (ipAddressElement) {
-                ipAddressElement.textContent = data.ip;
+                ipAddressElement.textContent = data.ip || 'Unable to fetch IP address';
             }
         } catch (error) {
             const ipAddressElement = document.getElementById('ip-address');
@@ -52,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
-            hour12: true, // 12-hour format
-            timeZone: 'America/Chicago' // Central Time
+            hour12: true,
+            timeZone: 'America/Chicago'
         };
         const timeString = now.toLocaleTimeString('en-US', options);
         const centralTimeElement = document.getElementById('central-time');
@@ -64,143 +62,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Cloudflare Tunnel Status Functionality ---
     const tunnelStatusDiv = document.getElementById('tunnel-status');
+    const tunnelStatusLabel = document.getElementById('tunnel-status-label');
+    const workerUrl = 'https://tunnel-status.isaac-g-swenson.workers.dev'; // Replace with your actual Cloudflare Worker URL
 
-    // IMPORTANT: Replace this with the actual URL of your deployed Cloudflare Worker.
-    // This Worker will act as a secure proxy to the Cloudflare API.
-    // Example: const workerUrl = 'https://your-tunnel-status-worker.your-username.workers.dev';
-    const workerUrl = 'https://tunnel-status.isaac-g-swenson.workers.dev'; // <<< REPLACE THIS LINE WITH YOUR WORKER URL
-
-    // Display a message if the Worker URL is not configured
-    if (tunnelStatusDiv && (workerUrl === 'https://tunnel-status.isaac-g-swenson.workers.dev' || !workerUrl)) {
-        tunnelStatusDiv.innerHTML = `
-            <p class="text-red-600 font-semibold">
-                Error: Cloudflare Worker URL is not configured.
-                Please update 'script.js' with your deployed Worker's URL.
-            </p>
-        `;
-        console.error("Cloudflare Worker URL is not configured in script.js.");
-        // Do not proceed with tunnel status fetch if URL is missing
-    } else if (tunnelStatusDiv) { // Only proceed if tunnelStatusDiv exists and workerUrl is set
-        /**
-         * Fetches the Cloudflare tunnel status from the deployed Worker.
-         * @returns {Promise<Array>} A promise that resolves to an array of tunnel objects.
-         */
+    if (tunnelStatusDiv) {
         async function fetchTunnelStatus() {
             try {
-                // Make a fetch request to your Cloudflare Worker
                 const response = await fetch(workerUrl);
-
-                // Check if the response was successful (status code 200-299)
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
                 }
-
-                // Parse the JSON response
                 const tunnels = await response.json();
                 return tunnels;
-
             } catch (error) {
-                // Log and re-throw the error for further handling
                 console.error('Error fetching tunnel status from Worker:', error);
-                throw error; // Propagate the error
+                throw error;
             }
         }
 
-        /**
-         * Renders the tunnel status in the HTML.
-         * @param {Array} tunnels - An array of tunnel objects.
-         */
         function renderTunnelStatus(tunnels) {
             let statusHtml = '';
+            const tunnelLabels = {
+                'SwensonNet': 'Site 0',
+                'pi_remote_backup': 'Site 1'
+            };
 
-            // Check if tunnels array is valid and not empty
+            let allHealthy = true;
             if (tunnels && tunnels.length > 0) {
                 tunnels.forEach(tunnel => {
-                    // Determine icon and color based on tunnel status
-                    const tunnelStatusColor = tunnel.status === 'healthy' ? 'text-green-600' : 'text-red-600';
-                    const tunnelIcon = tunnel.status === 'healthy' ? '✅' : '❌';
-
-                    statusHtml += `
-                        <div class="bg-white p-4 rounded-lg shadow-sm mb-4 border border-gray-200">
-                            <h3 class="text-xl font-semibold mb-2 flex items-center">
-                                <span class="${tunnelStatusColor} mr-2">${tunnelIcon}</span>
-                                ${tunnel.name} (<span class="${tunnelStatusColor}">${tunnel.status}</span>)
-                            </h3>
-                            <p class="text-sm text-gray-600 mb-3">ID: <code class="bg-gray-100 p-1 rounded text-xs">${tunnel.id}</code></p>
-                            <h4 class="text-lg font-medium text-gray-800 mb-2">Connections:</h4>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                    `;
-
-                    // Render connections for each tunnel
-                    if (tunnel.connections && tunnel.connections.length > 0) {
-                        tunnel.connections.forEach(conn => {
-                            const connStatusColor = conn.status === 'healthy' ? 'text-green-500' : 'text-red-500';
-                            const connIcon = conn.status === 'healthy' ? '🟢' : '🔴';
-                            statusHtml += `
-                                <li class="flex items-center">
-                                    <span class="${connStatusColor} mr-2">${connIcon}</span>
-                                    <span class="font-medium">${conn.colo}</span>:
-                                    <span class="${connStatusColor} ml-1">${conn.status}</span>
-                                    ${conn.is_pending_reconnect ? '<span class="text-orange-500 ml-2">(Reconnecting)</span>' : ''}
-                                </li>
-                            `;
-                        });
-                    } else {
-                        statusHtml += '<li class="text-gray-500">No active connections reported.</li>';
+                    if (tunnel.status !== 'healthy') {
+                        allHealthy = false;
                     }
+                });
+            }
+
+            if (tunnelStatusLabel) {
+                tunnelStatusLabel.classList.remove('text-tunnel-healthy', 'text-tunnel-unhealthy');
+                tunnelStatusLabel.classList.add(allHealthy ? 'text-tunnel-healthy' : 'text-tunnel-unhealthy');
+            }
+
+            if (tunnels && tunnels.length > 0) {
+                tunnels.forEach(tunnel => {
+                    const label = tunnelLabels[tunnel.name] || tunnel.name;
+                    const statusSymbol = tunnel.status === 'healthy' ? '🟢' : '🔴';
+                    const tunnelStatusClass = tunnel.status === 'healthy' ? 'text-tunnel-healthy' : 'text-tunnel-unhealthy';
+
                     statusHtml += `
-                            </ul>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex-1 min-w-[200px]">
+                            <h3 class="text-lg font-semibold flex items-center ${tunnelStatusClass}">
+                                ${statusSymbol} ${label}: <span class="${tunnelStatusClass} ml-2">${tunnel.status}</span>
+                            </h3>
                         </div>
                     `;
                 });
             } else {
-                // Message if no tunnels are found or data is empty
                 statusHtml = `
-                    <p class="text-orange-600 font-semibold">
+                    <p class="text-orange-600 dark:text-orange-400 font-semibold">
                         No Cloudflare tunnels found or data is currently unavailable.
                     </p>
-                    <p class="text-sm text-gray-500 mt-2">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Please ensure your tunnels are active and the Cloudflare Worker is correctly configured.
                     </p>
                 `;
             }
 
-            // Update the HTML content of the tunnel status div
             if (tunnelStatusDiv) {
                 tunnelStatusDiv.innerHTML = statusHtml;
             }
         }
 
-        // Initial fetch and render when the page loads
         fetchTunnelStatus()
-            .then(renderTunnelStatus) // On success, render the tunnels
+            .then(renderTunnelStatus)
             .catch(error => {
-                // On error, display an error message to the user
                 if (tunnelStatusDiv) {
                     tunnelStatusDiv.innerHTML = `
-                        <p class="text-red-600 font-semibold">
+                        <p class="text-red-600 dark:text-red-400 font-semibold">
                             Failed to load tunnel status. Please try again later.
                         </p>
-                        <p class="text-sm text-gray-500 mt-2">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
                             Details: ${error.message}
                         </p>
                     `;
                 }
             });
 
-        // Optionally, refresh the status periodically (e.g., every 5 minutes)
         setInterval(() => {
             fetchTunnelStatus()
                 .then(renderTunnelStatus)
                 .catch(error => console.error('Periodic fetch error:', error));
-        }, 300000); // 300000 ms = 5 minutes
+        }, 300000);
     }
 
-
-    // --- Call initial functions when the page loads ---
-    // The DOMContentLoaded listener handles initial calls.
+    // --- Initial Calls ---
     fetchIPAddress();
-    updateCentralTime(); // Initial call
-    setInterval(updateCentralTime, 1000); // Update every second
+    updateCentralTime();
+    setInterval(updateCentralTime, 1000);
 });
