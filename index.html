@@ -1,280 +1,190 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aperture Labs - Home Page</title>
-    <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for Inter font and general body styling */
         body {
-            font-family: 'Inter', Arial, sans-serif; /* Added Inter font */
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-            color: #333;
             transition: background-color 0.3s, color 0.3s;
         }
-
-        .container {
-            padding: 20px;
-            max-width: 960px; /* Constrain content width */
-            margin: 20px auto; /* Center the container, added top margin */
+        .dark-mode {
+            background-color: #2D3748; /* Dark gray for dark mode */
+            color: #E2E8F0; /* Light pastel for text */
         }
-
-        .mode-toggle {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            z-index: 10; /* Ensure it's above other content */
+        .light-mode {
+            background-color: #F5F5F5; /* Light gray for light mode */
+            color: #2D3748; /* Dark gray for text */
         }
-
-        h2 {
-            color: #007bff;
-            margin-top: 20px;
-            margin-bottom: 10px;
+        .dark-mode a {
+            color: #A3BFFA; /* Pastel blue for links */
         }
-
-        .links-section {
-            margin-bottom: 30px;
+        .dark-mode a:hover {
+            color: #F28C38; /* Sunset orange on hover */
         }
-
-        /* --- MODIFIED CSS FOR LINKS AND LOGOS --- */
-        .links-section a {
-            display: flex; /* Changed from 'block' to 'flex' */
-            align-items: center; /* Vertically align items in the center */
-            font-size: 16px;
-            color: #333;
-            margin: 5px 0;
-            padding: 5px 0;
-            text-decoration: none;
-            transition: color 0.3s;
+        .light-mode a {
+            color: #4A7043; /* Forest green for links */
         }
-
-        .links-section a:hover {
-            color: #0056b3;
+        .light-mode a:hover {
+            color: #F28C38; /* Sunset orange on hover */
         }
-
-        .links-section img {
-            width: 20px;
-            height: 20px; /* Added height to ensure consistent sizing */
-            object-fit: contain; /* Ensures image scales properly within its bounds */
-            vertical-align: middle; /* This might not be strictly needed with flex, but good for fallback */
-            margin-right: 8px;
+        .bg-pastel-green {
+            background-color: #C8E6C9; /* Pastel forest green */
         }
-        /* --- END MODIFIED CSS --- */
-
-        /* Dark Mode */
-        body.dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
+        .dark-mode .bg-pastel-green {
+            background-color: #4A7043; /* Forest green for dark mode */
         }
-
-        body.dark-mode .mode-toggle {
-            background-color: #333;
+        .light-mode .bg-pastel-green {
+            background-color: #A5D6A7; /* Slightly darker pastel green for light mode */
         }
-
-        body.dark-mode .links-section a {
-            color: #e0e0e0;
+        .bg-pastel-orange {
+            background-color: #FFCCBC; /* Pastel sunset orange */
         }
-
-        body.dark-mode .links-section a:hover {
-            color: #007bff;
+        .dark-mode .bg-pastel-orange {
+            background-color: #F28C38; /* Sunset orange for dark mode */
         }
-
-        body.dark-mode h2 {
-            color: #7ab8ff; /* A lighter blue for dark mode headings */
+        .light-mode .bg-pastel-orange {
+            background-color: #FFAB91; /* Slightly darker pastel orange for light mode */
         }
-
-        /* Info Section Styling */
-        .info-section {
-            background-color: #ffffff; /* Light background for sections */
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: center; /* Center content within this section */
+        .text-pastel-green {
+            color: #4A7043; /* Forest green */
         }
-
-        body.dark-mode .info-section {
-            background-color: #2c2c2c; /* Darker background for sections in dark mode */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        .dark-mode .text-pastel-green {
+            color: #C8E6C9; /* Pastel forest green for dark mode */
         }
-
-        .info-section div { /* Style for individual info lines like time/IP */
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-            color: #333;
+        .light-mode .text-pastel-green {
+            color: #1B5E20; /* Darker green for better contrast in light mode */
         }
-
-        body.dark-mode .info-section div {
-            color: #e0e0e0;
+        .text-tunnel-healthy {
+            color: #2E7D32; /* Green for healthy */
         }
-
-        .current-time, .ip-display { /* Specific styles for time and IP text */
-            font-weight: bold;
-            color: #007bff;
+        .dark-mode .text-tunnel-healthy {
+            color: #A5D6A7; /* Light green for dark mode */
         }
-
-        body.dark-mode .current-time, body.dark-mode .ip-display {
-            color: #7ab8ff;
+        .light-mode .text-tunnel-healthy {
+            color: #2E7D32; /* Dark green for light mode */
         }
-
-        /* Styles for Cloudflare Tunnel Status Section (using Tailwind classes) */
-        #tunnel-status-section {
-            padding: 20px;
-            background-color: #e0f2fe; /* Light blue background for the section */
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-top: 30px;
-            border: 1px solid #a7d9f7;
+        .text-tunnel-unhealthy {
+            color: #D32F2F; /* Red for unhealthy */
         }
-
-        body.dark-mode #tunnel-status-section {
-            background-color: #1a202c; /* Darker blue background in dark mode */
-            border-color: #2d3748;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        .dark-mode .text-tunnel-unhealthy {
+            color: #EF9A9A; /* Light red for dark mode */
         }
-
-        #tunnel-status-section h2 {
-            color: #1e40af; /* Darker blue for heading */
-            margin-bottom: 20px;
+        .light-mode .text-tunnel-unhealthy {
+            color: #D32F2F; /* Dark red for light mode */
         }
-
-        body.dark-mode #tunnel-status-section h2 {
-            color: #90cdf4; /* Lighter blue for heading in dark mode */
+        .text-pastel-orange {
+            color: #F28C38; /* Sunset orange */
         }
-
-        .tunnel-item {
-            background-color: #ffffff; /* White background for individual tunnel cards */
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
+        .dark-mode .text-pastel-orange {
+            color: #FFCCBC; /* Pastel sunset orange for dark mode */
         }
-
-        body.dark-mode .tunnel-item {
-            background-color: #2d3748; /* Dark background for tunnel cards in dark mode */
-            border-color: #4a5568;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .tunnel-item h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #2d3748; /* Dark gray for tunnel name */
-            margin-bottom: 8px;
-        }
-
-        body.dark-mode .tunnel-item h3 {
-            color: #e2e8f0; /* Light gray for tunnel name in dark mode */
-        }
-
-        .tunnel-item p {
-            font-size: 0.95rem;
-            color: #4a5568; /* Medium gray for text */
-            margin-bottom: 5px;
-        }
-
-        body.dark-mode .tunnel-item p {
-            color: #cbd5e0; /* Lighter gray for text in dark mode */
-        }
-
-        .tunnel-item ul {
-            list-style-type: none;
-            padding-left: 0;
-            margin-top: 10px;
-        }
-
-        .tunnel-item ul li {
-            font-size: 0.9rem;
-            color: #64748b; /* Slate gray for list items */
-            margin-bottom: 3px;
-        }
-
-        body.dark-mode .tunnel-item ul li {
-            color: #a0aec0; /* Lighter slate gray in dark mode */
-        }
-
-        /* Spinner for loading state */
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .light-mode .text-pastel-orange {
+            color: #EF6C00; /* Darker orange for readability in light mode */
         }
     </style>
 </head>
-<body>
-    <button class="mode-toggle" onclick="toggleMode()">Toggle Dark/Light Mode</button>
+<body class="dark-mode font-sans">
+    <div class="container mx-auto p-4 max-w-4xl">
+        <!-- Header -->
+        <header class="flex justify-end items-center mb-6">
+            <button onclick="toggleMode()" class="bg-pastel-orange text-pastel-green px-4 py-2 rounded hover:bg-pastel-green hover:text-pastel-orange">
+                Toggle Dark/Light Mode
+            </button>
+        </header>
 
-    <div class="container">
-        <!-- Combined Time and IP Address Section -->
-        <div class="info-section">
-            <h2>System Information</h2>
-            <div>Current Time (Central Time): <span id="central-time" class="current-time">Calculating...</span></div>
-            <div>Your Public IP Address: <span id="ip-address" class="ip-display">Fetching IP address...</span></div>
-        </div>
-
-        <!-- Cloudflare Tunnel Status Section -->
-        <section id="tunnel-status-section" class="mt-10">
-            <h2 class="text-3xl font-bold mb-6 text-center">Cloudflare Tunnel Status</h2>
-            <div id="tunnel-status" class="text-gray-700 text-center text-lg">
-                <p>Loading tunnel status...</p>
-                <div class="flex justify-center items-center mt-4">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                </div>
+        <!-- System Information -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-pastel-green">System Information</h2>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                <p class="text-pastel-orange">Current Time (Central Time): <span id="central-time">Calculating...</span></p>
+                <p class="text-pastel-orange">Your Public IP Address: <span id="ip-address">Fetching IP address...</span></p>
             </div>
-            <p class="text-sm text-gray-500 mt-6 text-center">
-                Status is fetched securely via a Cloudflare Worker.
-            </p>
         </section>
 
-        <div class="links-section">
-            <h2>Homenet Links</h2>
-            <a href="https://openspeedtest.aperturelabs.cc" target="_blank">OpenSpeedTest</a>
-            <a href="https://proxmox.aperturelabs.cc" target="_blank">Proxmox</a>
-            <a href="https://papermerge.aperturelabs.cc" target="_blank">PaperMerge</a>
-            <a href="https://truenas.aperturelabs.cc" target="_blank">TrueNas</a>
-            <a href="https://centos.aperturelabs.cc" target="_blank">Rocky</a>
-            <a href="https://sync.aperturelabs.cc" target="_blank">Sync</a>
-            <a href="https://syncremote.aperturelabs.cc" target="_blank">Sync Remote</a>
-            <a href="https://homeassistant.aperturelabs.cc" target="_blank">HomeAssistant</a>
-            <a href="https://guac.aperturelabs.cc/guacamole/#" target="_blank">Guac</a>
-        </div>
+        <!-- Tunnel Status -->
+        <section class="mb-8">
+            <h2 id="tunnel-status-label" class="text-xl font-semibold mb-4 text-pastel-green">Tunnel Status</h2>
+            <div id="tunnel-status" class="flex flex-wrap gap-4">
+                <p>Loading tunnel status...</p>
+            </div>
+        </section>
 
-        <div class="links-section">
-            <h2>Cybernet Links</h2>
-            <a href="https://electrek.co" target="_blank">
-                <img src="electrek.jpg" alt="Electrek">
-                <span>Electrek</span>
-            </a>
-            <a href="https://news.ycombinator.com" target="_blank">
-                <img src="hackernews.png" alt="Hacker News">
-                <span>Hacker News</span>
-            </a>
-            <a href="https://news.google.com" target="_blank">
-                <img src="googlenews.png" alt="Google News">
-                <span>Google News</span>
-            </a>
-        </div>
+        <!-- Homenet Links -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-pastel-green">Homenet Links</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <a href="https://openspeedtest.com" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">OpenSpeedTest</a>
+                <a href="https://proxmox.com" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">Proxmox</a>
+                <a href="https://papermerge.com" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">PaperMerge</a>
+                <a href="https://truenas.com" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">TrueNAS</a>
+                <a href="https://rockylinux.org" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">Rocky</a>
+                <a href="https://syncthing.net" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">Sync</a>
+                <a href="https://syncthing.net" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">Sync Remote</a>
+                <a href="https://home-assistant.io" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">HomeAssistant</a>
+                <a href="https://guacamole.apache.org" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange">Guac</a>
+            </div>
+        </section>
+
+        <!-- Cybernet Links -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-pastel-green">Cybernet Links</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <a href="https://electrek.co" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange flex items-center justify-center">
+                    <img src="electrek.jpg" alt="Electrek Logo" class="w-6 h-6 mr-2">
+                    Electrek
+                </a>
+                <a href="https://news.ycombinator.com" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange flex items-center justify-center">
+                    <img src="hackernews.png" alt="Hacker News Logo" class="w-6 h-6 mr-2">
+                    Hacker News
+                </a>
+                <a href="https://news.google.com" class="bg-pastel-green p-3 rounded text-center hover:bg-pastel-orange text-pastel-orange flex items-center justify-center">
+                    <img src="googlenews.png" alt="Google News Logo" class="w-6 h-6 mr-2">
+                    Google News
+                </a>
+            </div>
+        </section>
     </div>
 
-    <footer class="mt-12 text-center text-gray-500 text-sm">
-        <p>&copy; 2025 Aperture Labs. All rights reserved.</p>
-    </footer>
-
-    <!-- Link to your JavaScript file -->
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
